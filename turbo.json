@@ -5,6 +5,26 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [
+        ".next/**", 
+        "!.next/cache/**",
+        "dist/**",
+        "**/*.tsbuildinfo"
+      ]
+    },
+    "http-backend#build": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "tsconfig.json", "package.json"],
+      "outputs": ["dist/**", "**/*.tsbuildinfo"]
+    },
+    "ws-backend#build": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "tsconfig.json", "package.json"],
+      "outputs": ["dist/**", "**/*.tsbuildinfo"]
+    },
+    "web#build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": {
