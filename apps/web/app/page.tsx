@@ -20,3 +20,13 @@ export default async function Home() {
     <div>Todos: {JSON.stringify(todos)}</div>
   </>
 }
+
+
+// export const revalidate = 60 // revalidate every 60 seconds and static generate
+
+// or 
+ 
+// this will force it to be a dynamic page 
+// now it is not getting data on while building
+export const dynamic = 'force-dynamic'
+
