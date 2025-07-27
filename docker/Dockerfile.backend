@@ -1,5 +1,8 @@
 FROM oven/bun:1
 
+# Install OpenSSL and curl for Prisma compatibility and healthchecks
+RUN apt-get update -y && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /usr/src/app
 
 COPY ./packages ./packages

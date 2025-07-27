@@ -1,5 +1,8 @@
 FROM oven/bun:1
 
+# Install OpenSSL and curl for Prisma compatibility and healthchecks
+RUN apt-get update -y && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /usr/src/app
 
 ARG DATABASE_URL
@@ -13,8 +16,12 @@ COPY ./apps/web ./apps/web
 
 RUN bun install 
 RUN bun run db:generate
-RUN DATABASE_URL = ${DATABASE_URL} bun run build
+RUN DATABASE_URL=${DATABASE_URL} bun run build
+
+# Create startup script
+RUN echo '#!/bin/bash\necho "Running database migrations..."\nbun run db:migrate:deploy\necho "Starting application..."\nbun run start:web' > /usr/src/app/start.sh
+RUN chmod +x /usr/src/app/start.sh
 
 EXPOSE 3000
 
-CMD [ "bun", "run", "start:web" ]
+CMD [ "/usr/src/app/start.sh" ]

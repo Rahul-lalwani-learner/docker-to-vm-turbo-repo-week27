@@ -1,0 +1,103 @@
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: turborepo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-turborepo_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - turborepo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # HTTP Backend Service
+  http-backend:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.backend
+    container_name: turborepo-http-backend
+    restart: unless-stopped
+    ports:
+      - "${HTTP_BACKEND_PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - turborepo-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # WebSocket Backend Service  
+  ws-backend:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.ws
+    container_name: turborepo-ws-backend
+    restart: unless-stopped
+    ports:
+      - "${WS_BACKEND_PORT:-3002}:3002"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - turborepo-network
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 3002 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend/Web Service
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.frontend
+      args:
+        - DATABASE_URL=${DATABASE_URL}
+    container_name: turborepo-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXT_PUBLIC_HTTP_BACKEND_URL=${HTTP_BACKEND_URL:-http://localhost:3001}
+      - NEXT_PUBLIC_WS_BACKEND_URL=${WS_BACKEND_URL:-ws://localhost:3002}
+    depends_on:
+      - database
+      - http-backend
+      - ws-backend
+    networks:
+      - turborepo-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  turborepo-network:
+    driver: bridge

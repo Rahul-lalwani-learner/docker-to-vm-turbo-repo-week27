@@ -1,5 +1,8 @@
 FROM oven/bun:1
 
+# Install OpenSSL and netcat for Prisma compatibility and healthchecks
+RUN apt-get update -y && apt-get install -y openssl netcat-openbsd && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /usr/src/app
 
 COPY ./packages ./packages

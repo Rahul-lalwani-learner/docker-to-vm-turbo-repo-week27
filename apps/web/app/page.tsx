@@ -3,7 +3,8 @@ import { prismaClient } from "db/client";
 
 async function getUsers(){
   try {
-    const response = await axios.get("http://localhost:3001/");
+    const backendUrl = process.env.NEXT_PUBLIC_HTTP_BACKEND_URL || "http://localhost:3001";
+    const response = await axios.get(`${backendUrl}/`);
     return response.data;
   } catch (error) {
     console.error("Failed to fetch users:", error);
