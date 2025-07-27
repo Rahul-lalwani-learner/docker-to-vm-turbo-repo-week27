@@ -193,32 +193,78 @@ jobs:
                 driver: bridge
             EOF
             
+            # Check disk space and cleanup if needed
+            echo "🔍 Checking disk space..."
+            df -h
+            
+            # Cleanup Docker resources to free up space
+            echo "🧹 Cleaning up Docker resources..."
+            docker system prune -a -f || true
+            docker volume prune -f || true
+            docker network prune -f || true
+            
+            # Clean up system cache
+            echo "🧹 Cleaning up system cache..."
+            rm -rf ~/.cache/* || true
+            sudo apt-get clean || true
+            sudo apt-get autoclean || true
+            sudo apt-get autoremove -y || true
+            
+            # Check space after cleanup
+            echo "💾 Available space after cleanup:"
+            df -h
+            
             # Login to Docker Hub
+            echo "🔐 Logging into Docker Hub..."
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
             # Stop existing containers
+            echo "⏹️ Stopping existing containers..."
             docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
             
-            # Pull latest images
+            # Remove old images to free up more space
+            echo "🗑️ Removing old images..."
+            docker images | grep "${{ secrets.DOCKERHUB_USERNAME }}/turborepo" | awk '{print $3}' | xargs -r docker rmi -f || true
+            
+            # Pull latest images one by one with space check
+            echo "📥 Pulling latest images..."
+            echo "Pulling HTTP Backend..."
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/turborepo-http-backend:latest
+            df -h | head -2
+            
+            echo "Pulling WebSocket Backend..."  
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/turborepo-ws-backend:latest
+            df -h | head -2
+            
+            echo "Pulling Web Frontend..."
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/turborepo-web:latest
+            df -h | head -2
             
             # Start the application
+            echo "🚀 Starting the application..."
             docker-compose -f docker-compose.prod.yml up -d
             
             # Wait for services to be healthy
-            echo "Waiting for services to start..."
+            echo "⏳ Waiting for services to start..."
             sleep 30
             
             # Check container status
+            echo "📊 Container status:"
             docker-compose -f docker-compose.prod.yml ps
             
+            # Check final disk usage
+            echo "💾 Final disk usage:"
+            df -h
+            
             # Show application URLs
-            echo "✅ Deployment completed!"
+            echo ""
+            echo "✅ Deployment completed successfully!"
             echo "🌐 Web Application: http://ec2-13-126-228-85.ap-south-1.compute.amazonaws.com:3000"
             echo "🔗 HTTP API: http://ec2-13-126-228-85.ap-south-1.compute.amazonaws.com:3001"
             echo "⚡ WebSocket: ws://ec2-13-126-228-85.ap-south-1.compute.amazonaws.com:3002"
+            echo ""
             
-            # Cleanup old images
-            docker image prune -f
+            # Final cleanup of unused images and containers
+            echo "🧹 Final cleanup..."
+            docker container prune -f || true
+            docker image prune -f || true
