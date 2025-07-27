@@ -17,8 +17,15 @@ export default async function Home() {
   const todos = await prismaClient.todo.findMany({});
 
   return <>
-    <div>Users: {JSON.stringify(users)}</div>
-    <div>Todos: {JSON.stringify(todos)}</div>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column', 
+    }}>Users: {JSON.stringify(users)}</div>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      margin: '20px' 
+    }}>Todos: {JSON.stringify(todos)}</div>
   </>
 }
 
