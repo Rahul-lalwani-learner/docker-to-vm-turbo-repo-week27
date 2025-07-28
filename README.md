@@ -1,135 +1,243 @@
-# Turborepo starter
+# Docker Containerization & CI/CD Pipeline with Turborepo
 
-This Turborepo starter is maintained by the Turborepo core team.
+A comprehensive DevOps project demonstrating Docker containerization, multi-service orchestration, and automated CI/CD deployment to AWS EC2.
 
-## Using this example
+## � DevOps Focus
 
-Run the following command:
+This project showcases modern DevOps practices including:
+- **Multi-Service Containerization**: Docker containers for each microservice
+- **Intelligent CI/CD Pipeline**: Conditional builds based on code changes
+- **Production Deployment**: Automated deployment to AWS EC2
+- **Container Orchestration**: Docker Compose for service management
+- **Infrastructure as Code**: GitHub Actions workflows for automation
 
-```sh
-npx create-turbo@latest
+## 🐳 Container Architecture
+
+### Services & Ports
+- **Database**: PostgreSQL (Port 5432)
+- **HTTP Backend**: Express.js API (Port 3001)
+- **WebSocket Backend**: Real-time server (Port 3002)  
+- **Web Frontend**: Next.js application (Port 3000)
+
+### Docker Configuration
+- **Multi-stage builds** for optimized image sizes
+- **Health checks** for service monitoring
+- **Service dependencies** with proper startup order
+- **Volume persistence** for database data
+- **Network isolation** via Docker networks
+
+## 📦 Project Structure
+
+### Applications
+- **`apps/web`**: Next.js frontend application
+- **`apps/http-backend`**: Express.js REST API server  
+- **`apps/ws-backend`**: WebSocket server for real-time communication
+
+### Shared Packages
+- **`packages/db`**: Prisma database layer with PostgreSQL
+- **`packages/ui`**: Shared React component library
+- **`packages/eslint-config`**: ESLint configurations
+- **`packages/typescript-config`**: TypeScript configurations
+
+## 🛠️ DevOps Technology Stack
+
+- **Containerization**: Docker & Docker Compose
+- **CI/CD**: GitHub Actions with intelligent workflows
+- **Container Registry**: Docker Hub for image storage
+- **Cloud Deployment**: AWS EC2 with automated provisioning
+- **Orchestration**: Docker Compose for multi-service management
+- **Monitoring**: Health checks and service dependency management
+- **Runtime**: Bun for JavaScript execution
+- **Build System**: Turborepo for monorepo optimization
+
+## 🚀 CI/CD Pipeline Features
+
+### 🔍 Intelligent Build System
+- **Change Detection**: Only builds containers when relevant code changes
+- **Path-based Triggers**: Monitors specific directories for each service
+- **Dependency Awareness**: Rebuilds all services when shared packages change
+- **Conditional Deployment**: Skips deployment if no changes detected
+
+### 📋 Pipeline Stages
+1. **Change Detection**: Analyze git diff to determine what changed
+2. **Conditional Building**: Build only affected Docker images
+3. **Image Registry**: Push to Docker Hub with latest and SHA tags
+4. **AWS Deployment**: Automated deployment to EC2 instance
+5. **Health Verification**: Ensure all services are healthy post-deployment
+
+### 🔧 Deployment Automation
+- **Docker Installation**: Automatic Docker/Docker Compose setup on EC2
+- **Image Management**: Intelligent pulling of only updated images
+- **Disk Space Management**: Automatic cleanup to prevent space issues
+- **Service Orchestration**: Proper startup order with health checks
+- **Zero-downtime Deployment**: Rolling updates with dependency management
+
+## 🐳 Docker Configuration
+
+### Multi-stage Dockerfiles
+- **`docker/Dockerfile.backend`**: Optimized Express.js API container
+- **`docker/Dockerfile.ws`**: WebSocket server container
+- **`docker/Dockerfile.frontend`**: Next.js application container
+
+### Docker Compose Setup
+```yaml
+# Production services with:
+- PostgreSQL with persistent volumes
+- Service health checks
+- Inter-service dependencies  
+- Restart policies
+- Network isolation
+- Environment variable management
 ```
 
-## What's inside?
+## �‍♂️ Getting Started
 
-This Turborepo includes the following packages/apps:
+### Prerequisites
+- [Docker](https://www.docker.com/) and Docker Compose
+- [Bun](https://bun.sh/) runtime
+- AWS EC2 instance (for deployment)
+- Docker Hub account
 
-### Apps and Packages
+### Local Development with Docker
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+1. **Clone and setup**
+   ```bash
+   git clone <repository-url>
+   cd docker_to_vm_turborepo
+   ```
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+2. **Environment Configuration**
+   ```env
+   DATABASE_URL="postgresql://postgres:postgres123@database:5432/turborepo"
+   ```
 
-### Utilities
+3. **Start all services**
+   ```bash
+   docker-compose up -d
+   ```
 
-This Turborepo has some additional tools already setup for you:
+4. **Verify deployment**
+   ```bash
+   docker-compose ps          # Check service status
+   docker-compose logs -f     # Follow logs
+   ```
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+### Production Deployment
 
-### Build
+1. **Configure GitHub Secrets**
+   ```
+   DOCKERHUB_USERNAME  # Docker Hub username
+   DOCKERHUB_TOKEN     # Docker Hub access token  
+   SSH_PRIVATE_KEY     # EC2 SSH private key
+   ```
 
-To build all apps and packages, run the following command:
+2. **Trigger Deployment**
+   - Push to `main` branch
+   - Or manually trigger via GitHub Actions
 
-```
-cd my-turborepo
+3. **Monitor Deployment**
+   - Check GitHub Actions workflow status
+   - Verify service health on EC2 instance
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+## � DevOps Commands
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
+### Docker Operations
+```bash
+# Local development
+docker-compose up -d              # Start all services
+docker-compose down               # Stop all services
+docker-compose ps                 # Check service status
+docker-compose logs -f            # Follow logs
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+# Image management  
+docker-compose build              # Build all images
+docker-compose pull               # Pull latest images
+docker system prune -a            # Clean up unused resources
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+# Individual service operations
+docker-compose logs web           # Frontend logs
+docker-compose logs http-backend  # API logs  
+docker-compose logs ws-backend    # WebSocket logs
+docker-compose logs database      # PostgreSQL logs
 ```
 
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+### Build System
+```bash
+# Turborepo commands
+bun run build                     # Build all packages
+bun run dev                       # Development mode
+bun run lint                      # Code linting
+turbo build --filter=web          # Build specific service
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+### Database Operations
+```bash
+bun run db:generate               # Generate Prisma client
+bun run db:migrate:deploy         # Deploy migrations
 ```
 
-## Useful Links
+## � Monitoring & Debugging
 
-Learn more about the power of Turborepo:
+### Health Checks
+- **HTTP Backend**: `GET /health` endpoint
+- **WebSocket**: Port connectivity check
+- **Database**: PostgreSQL ready check
+- **Frontend**: HTTP response check
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+### Container Monitoring
+```bash
+# Service status
+docker-compose ps
+
+# Resource usage  
+docker stats
+
+# Container inspection
+docker inspect <container-name>
+
+# Logs analysis
+docker-compose logs --tail=100 <service-name>
+```
+
+## 🎯 DevOps Learning Outcomes
+
+This project demonstrates mastery of:
+
+### 🐳 **Containerization**
+- Multi-service Docker architecture
+- Optimized Dockerfile creation with multi-stage builds
+- Docker Compose orchestration
+- Container networking and volume management
+- Health check implementation
+
+### 🔄 **CI/CD Pipeline**
+- Intelligent conditional building based on code changes
+- GitHub Actions workflow automation
+- Docker Hub integration for image registry
+- Automated AWS EC2 deployment
+- Zero-downtime deployment strategies
+
+### ☁️ **Cloud Infrastructure**
+- AWS EC2 instance management
+- Automated Docker installation and setup
+- Production environment configuration
+- Service health monitoring and restart policies
+
+### 🛠️ **DevOps Best Practices**
+- Infrastructure as Code with GitHub Actions
+- Automated testing and deployment workflows
+- Container resource optimization
+- Service dependency management
+- Monitoring and logging implementation
+
+## 🤝 Contributing
+
+This project showcases modern DevOps practices and container orchestration. Feel free to explore the CI/CD pipeline, Docker configurations, and deployment automation.
+
+## 📝 License
+
+This project is part of a DevOps learning curriculum demonstrating containerization, CI/CD, and cloud deployment practices.
+
+---
+
+**🚀 DevOps Project showcasing Docker, CI/CD, and AWS deployment automation**
